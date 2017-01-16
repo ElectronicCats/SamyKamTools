@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-#curl https://raw.githubusercontent.com/ElectronicsCats/SamyKamTools/install.sh | sudo sh
+#curl https://raw.githubusercontent.com/ElectronicsCats/SamyKamTools/master/install.sh | sudo sh
 
 #Beta Install Script
 
@@ -32,7 +32,7 @@ sleep 2
 
 apt-get update  # To get the latest package lists
 #apt-get upgrade -y
-apt-get install python-dev python-setuptools swig python-bluez gcc-avr binutils-avr avr-libc-y #Prerequisites for WiringPi-Python
+apt-get install python-dev python-setuptools swig python-bluez gcc-avr binutils-avr avr-libc -y #Prerequisites for WiringPi-Python
 
 cd
 #gdata-2
