@@ -1,0 +1,93 @@
+PCBNEW-LibModule-V1  
+# encoding utf-8
+Units mm
+$INDEX
+SW_PEC11R-4215F-S0024
+$EndINDEX
+$MODULE SW_PEC11R-4215F-S0024
+Po 0 0 0 15 00000000 00000000 ~~
+Li SW_PEC11R-4215F-S0024
+Cd 
+Sc 00000000
+At STD
+Op 0 0 0
+.SolderMask 0.1
+.SolderPaste 0
+T0 -4.71 -9.135 1 1 0 0.05 N V 21 "SW_PEC11R-4215F-S0024"
+T1 -4.075 9.615 1 1 0 0.05 N V 21 "VAL**"
+DC 0 0 3 0 0.1 21
+DC 0 0 2.25 0 0.1 21
+DC -5 -5.5 -4.5 -5.5 0.1 24
+DC 5 -5.5 5.5 -5.5 0.1 24
+DC -5 5.5 -4.5 5.5 0.1 24
+DC 5 5.5 5.5 5.5 0.1 24
+DS -7 -8.25 7 -8.25 0.127 24
+DS 7 -8.25 7 8.75 0.127 24
+DS 7 8.75 -7 8.75 0.127 24
+DS -7 8.75 -7 -8.25 0.127 24
+DS -3.75 -6.7 -6.25 -6.7 0.127 21
+DS -6.25 -6.7 -6.25 -1.6 0.127 21
+DS 3.75 -6.7 6.25 -6.7 0.127 21
+DS 6.25 -6.7 6.25 -1.6 0.127 21
+DS -1.3 -6.7 1.3 -6.7 0.127 21
+DS -3.75 6.7 -6.25 6.7 0.127 21
+DS -6.25 1.6 -6.25 6.7 0.127 21
+DS 6.25 6.7 3.75 6.7 0.127 21
+DS 6.25 1.6 6.25 6.7 0.127 21
+$PAD
+Sh "2" C 1.508 1.508 0 0 0
+Dr 1 0 0
+At STD N 00E0FFFF
+.SolderMask 0.2
+Ne 0 ""
+Po 2.5 -7
+$EndPAD
+$PAD
+Sh "1" C 1.508 1.508 0 0 0
+Dr 1 0 0
+At STD N 00E0FFFF
+.SolderMask 0.2
+Ne 0 ""
+Po -2.5 -7
+$EndPAD
+$PAD
+Sh "A" C 1.508 1.508 0 0 0
+Dr 1 0 0
+At STD N 00E0FFFF
+.SolderMask 0.2
+Ne 0 ""
+Po -2.5 7.5
+$EndPAD
+$PAD
+Sh "C" C 1.508 1.508 0 0 0
+Dr 1 0 0
+At STD N 00E0FFFF
+.SolderMask 0.2
+Ne 0 ""
+Po 0 7.5
+$EndPAD
+$PAD
+Sh "B" C 1.508 1.508 0 0 0
+Dr 1 0 0
+At STD N 00E0FFFF
+.SolderMask 0.2
+Ne 0 ""
+Po 2.5 7.5
+$EndPAD
+$PAD
+Sh "P1" R 1.8 2.6 0 0 0
+At SMD N 00888000
+.SolderMask 0.2
+.SolderPaste 0
+Ne 0 ""
+Po -5.7 0
+$EndPAD
+$PAD
+Sh "P2" R 1.8 2.6 0 0 0
+At SMD N 00888000
+.SolderMask 0.2
+.SolderPaste 0
+Ne 0 ""
+Po 5.7 0
+$EndPAD
+$EndMODULE SW_PEC11R-4215F-S0024
