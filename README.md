@@ -65,7 +65,7 @@ sudo python setup.py install
 #SamyKamTools
 git clone https://github.com/ElectronicsCats/SamyKamTools
 cd SamyKamTools
-sudo python SamyKamTools.py
+sudo python SamyKam.py
 ```
 
 ###Automatic Experimental
