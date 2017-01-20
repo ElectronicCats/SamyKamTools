@@ -179,7 +179,6 @@ def api_root():
     inputs = inputs + '<p><input type = "submit" value = "submit" /></p></form>'
     checkBlue = 'Activate ' if statusBluetooth == 'Off' else 'Deactivate'
     inputs += '<br/><a href="bluetooth">'+ checkBlue + ' Bluetooth</a>'
-
     return web+inputs
 
 @app.route('/bluetooth')
@@ -279,7 +278,7 @@ def genFunctions(d1): #Bluetooth commands handler
     elif (d1 == "quit"):
             return ""
     elif (splitData[0] == "help"):
-        return("Commands:\nRun - Run MagSpoof\track[1-10] [track data] - Add MagSpoof track\ncmd Command - Execute any command in the shell\nClear - Clear all the MagSpoof tracks in memory to add new ones\nWifi [SSID] [password] - Add wifi configuration\n")
+        return("Commands:\nRun - Run MagSpoof\Track[1-10] [track data] - Add MagSpoof track\nAny Command - Execute any command in the shell\nClear - Clear all the MagSpoof tracks in memory to add new ones\nWifi [SSID] [password] - Add wifi configuration\n")
     else:
 	cmd1 = runCommandlog(d1)
 	return cmd1 + "\n"
@@ -431,7 +430,7 @@ def runWebserver():
     tracks['webserver'] = statusWebserver
     writeTrack(tracks)
     menuInit(activeMenu, 0, 0)
-    print "Salio"
+    #print "Salio"
 def checkUpdates():
     clearDisplay()
     drawText(0,18,"Working on it!")
