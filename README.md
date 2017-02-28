@@ -75,3 +75,5 @@ curl https://raw.githubusercontent.com/ElectronicsCats/SamyKamTools/master/insta
 ```
 
 ##License
+
+The MagSpoofPi code is under Samy Kamkar license terms, for more information visit https://github.com/samyk/magspoof
