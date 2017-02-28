@@ -19,7 +19,7 @@ Mini-shell for basic commands implementing Bluetooth and Webserver independently
 - send any shell command using Bluetooth
 
 """
-from gaugette import rotary_encoder, switch
+from gaugette import rotary_encoder, switch, gpio
 
 from threading import Thread
 import subprocess
@@ -71,9 +71,10 @@ x = padding + 3
 font = ImageFont.load_default()
 
 #Start encoder configuration
-encoder = rotary_encoder.RotaryEncoder.Worker(A_PIN, B_PIN)
+gpio = rotary_encoder.gpio.GPIO()
+encoder = rotary_encoder.RotaryEncoder.Worker(gpio, A_PIN, B_PIN)
 encoder.start()
-switch1 = switch.Switch(SW_PIN)
+switch1 = switch.Switch(gpio, SW_PIN)
 last_state = None
 
 #MagSpoof variables
@@ -506,10 +507,10 @@ def mainWhile():
     global sw_state, last_state, counter, fromw
     while 1:
         #Negative value in the encoder means foward in the menu!
-        delta = encoder.get_delta()
+        delta = encoder.get_steps()
         if (delta != 0): #Slowing down the encoder data, necessary to have a good scrolling
             sleep(0.2)
-        delta = encoder.get_delta()
+        delta = encoder.get_steps()
         if (delta != 0):
         	menuFlow(delta)
         	print "rotate %d" % delta
