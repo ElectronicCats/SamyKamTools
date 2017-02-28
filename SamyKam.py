@@ -71,7 +71,7 @@ x = padding + 3
 font = ImageFont.load_default()
 
 #Start encoder configuration
-gpio = rotary_encoder.gpio.GPIO()
+gpio = gaugette.gpio.GPIO()
 encoder = rotary_encoder.RotaryEncoder.Worker(gpio, A_PIN, B_PIN)
 encoder.start()
 switch1 = switch.Switch(gpio, SW_PIN)
