@@ -71,13 +71,13 @@ cd py-gaugette
 sudo python setup.py install
 
 cd
-sudo apt-get install bison flex -y
-wget http://download.savannah.gnu.org/releases/avrdude/avrdude-6.2.tar.gz
-tar xfv avrdude-6.2.tar.gz
-cd avrdude-6.2/
-./configure -enable-linuxgpio
-make
-sudo make install
+sudo apt-get install bison automake autoconf flex git gcc #avrdude
+sudo apt-get install gcc-avr binutils-avr avr-libc
+git clone https://github.com/kcuzner/avrdude 
+cd avrdude/avrdude
+./bootstrap && ./configure && sudo make install
+
+pip install flask #web-server
 
 #SamyKamTools
 git clone https://github.com/ElectronicsCats/SamyKamTools
