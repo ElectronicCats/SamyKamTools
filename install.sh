@@ -70,6 +70,15 @@ git clone https://github.com/guyc/py-gaugette
 cd py-gaugette
 sudo python setup.py install
 
+cd
+sudo apt-get install bison flex -y
+wget http://download.savannah.gnu.org/releases/avrdude/avrdude-6.2.tar.gz
+tar xfv avrdude-6.2.tar.gz
+cd avrdude-6.2/
+./configure -enable-linuxgpio
+make
+sudo make install
+
 #SamyKamTools
 git clone https://github.com/ElectronicsCats/SamyKamTools
 cd SamyKamTools
