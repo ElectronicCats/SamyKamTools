@@ -178,26 +178,7 @@ def api_root():
         t1 = tracks['track'+str(i)] if ('track' + str(i)) in tracks else ''
         inputs = inputs + '<input type="text" class="pure-input-1" placeholder="Track" name="track'+str(i)+'" value="' + t1 +'"/>'
     return render_template("index.html", tracksv=inputs)
-    
-#Adding BlueSpoof Support - Beta version
-@app.route('/playthem', methods = ['POST']) #Adding BlueSpoof Support
-def playBluespoof():
-    result = request.form if request.method == 'POST' else request.args
-    checkRequest = jsonValues(result, 11, 0)
-    formatPlay = formatTracks()
-    for i in range(0,len(cardsPlay)):
-    	prepareWav(cardsPlay[i], '1')
-    return redirect("/", code=302)
-    
-@app.route('/bluespoof')
-def webBluespoof():
-    loadTracks()
-    inputs = ''
-    for i in range(1,11):
-        t1 = tracks['track'+str(i)] if ('track' + str(i)) in tracks else ''
-        inputs = inputs + '<textarea class="pure-input-1" placeholder="%4929555123456789^MALFUNCTION/MAJOR ^0902201010000000000000970000000?" name="track'+str(i)+'"/>'+t1+'</textarea>'        
-    return render_template("bluespoof.html", tracksv=Markup(inputs))
-#--BlueSpoof beta code
+  
 
 @app.route('/bluetooth')
 def webBluetooth():
