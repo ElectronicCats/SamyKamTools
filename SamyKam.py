@@ -8,34 +8,29 @@ Team work with @electronicats (https://twitter.com/electronicats)
 Named the tool in honor of Samy Kamkar(http://samy.pl)
 For his hard work and community support
  
-It is a MagSpoof but specfically designed for Raspberry Pi:
+This MagSpoof version is specfically designed for Raspberry Pi:
 - OLED for prepared attacks
 - Rotary endoder for navigation menu
 
 Support:
 Mini-shell for basic commands implementing Bluetooth and Webserver independently
 - change parameters without ssh
-- change wifi configuration [ssid/pass] *
 - send any shell command using Bluetooth
-
 """
-from gaugette import rotary_encoder, switch, gpio
 
+from flask import Flask, request, json, redirect, render_template, escape
+from gaugette import rotary_encoder, switch, gpio
 from threading import Thread
-import subprocess
-import shlex
-from flask import Flask, request, json, redirect
+from subprocess import PIPE, call, Popen
+from shlex import split as split1
 from os import path, environ, chdir
 from urllib2 import urlopen
-
-import Adafruit_SSD1306
+from Adafruit_SSD1306 import SSD1306_128_32
 from time import sleep
-from PIL import Image
-from PIL import ImageDraw
-from PIL import ImageFont
+from PIL import Image, ImageDraw, ImageFont
 from bluetooth import *
 
-webPort = 5000 #WebServer port
+webPort = 5002 #WebServer port
 
 MAGPIN = 7
 WAITINTRO = 2
@@ -57,7 +52,7 @@ SW_PIN = 4  #8 - board 16
 # - SCL -> board 5
 # - VCC -> board 1
 # - GND -> board 9
-disp = Adafruit_SSD1306.SSD1306_128_32(rst=RST, i2c_bus=1)
+disp = SSD1306_128_32(rst=RST, i2c_bus=1)
 disp.begin()
 width = disp.width
 height = disp.height
@@ -71,7 +66,7 @@ x = padding + 3
 font = ImageFont.load_default()
 
 #Start encoder configuration
-gpio = gaugette.gpio.GPIO()
+gpio = gpio.GPIO()
 encoder = rotary_encoder.RotaryEncoder.Worker(gpio, A_PIN, B_PIN)
 encoder.start()
 switch1 = switch.Switch(gpio, SW_PIN)
@@ -79,10 +74,10 @@ last_state = None
 
 #MagSpoof variables
 countTracks = 2
-headMFile = 'headMagSpoofPI' #Name of top file
-tailMFile = 'tailMagSpoofPI' #Name of tail file
-headMGPI = None
-tailMGPI = None
+headMFile = '/static/headMagSpoofPI' #Name of top file
+tailMFile = '/static/tailMagSpoofPI' #Name of tail file
+headMGPI = ''
+tailMGPI = ''
 
 #Menus and window configuration
 topLevel = top + 19
@@ -95,21 +90,23 @@ draw.rectangle((0,0,width,height), outline=0, fill=0)
 def getcwd(): #Get script directory
 	return  path.dirname(path.realpath("__file__"))
 
+
 #Flask - webserver functions
 app = Flask(__name__)
 tracks = {}
 statusBluetooth = "Off"
 statusWebserver = "Off"
+jsonFile = getcwd() + "/static/SamyKam.json"
 
 # Reading data back
 def writeTrack(jsonTracks):
-    with open(getcwd() + '/SamyKam.json', 'w') as f:
+    with open(jsonFile, 'w') as f:
         json.dump(jsonTracks, f)
             
 def loadTracks():
     global tracks, statusBluetooth, statusWebserver
-    if (path.exists(getcwd() + "/SamyKam.json")):
-        with open(getcwd() + '/SamyKam.json', 'r') as f:
+    if (path.exists(jsonFile)):
+        with open(jsonFile, 'r') as f:
             tracks = json.load(f)
     else:
         tracks['track1'] = '%B123456781234567^LASTNAME/FIRST^YYMMSSSDDDDDDDDDDDDDDDDDDDDDDDDD?'
@@ -155,32 +152,33 @@ def cleartracks():
     writeTrack(a)
     return "Cleared: " + json.dumps(a) + linkHome()
 
+
+cardsMenu = ["Previous Menu?"]
+cardsPlay = []
 def formatTracks(): #Generate tracks to compile
+    global cardsMenu, cardsPlay
+    cardsPlay = []
     allTracks = ''
+    #print tracks
     for t1, v1 in tracks.items():
-	if len(v1) > 0 and 'track' in t1:
-        	if len(allTracks) > 0:
-            		allTracks = allTracks + ','
-        	allTracks = allTracks + '\n"' + v1 + '\\0"'
+        if len(v1) > 0 and 'track' in t1:
+            if len(allTracks) > 0:
+                allTracks = allTracks + ','
+            allTracks = allTracks + '\n"' + v1 + '\\0"'
+            wformat = v1.encode("utf-8")
+            cardsMenu.extend(['"' + wformat + '\\0"'])
+            cardsPlay.extend([wformat])
     return allTracks
 
 @app.route('/')
 def api_root():
     loadTracks()
-    #print tracks
-    web = """SamyKam Web Commands:<br/><br/><a href="magspoof">Run MagSpoof</a>
-    <br/><a href="compile">Compile MagSpoof</a>
-    <br/><a href="cleartracks">Clear tracks</a></br>
-    </br>
-     <form action = "/addtracks" method = "POST">Change Tracks:"""
     inputs = ''
     for i in range(1,11):
         t1 = tracks['track'+str(i)] if ('track' + str(i)) in tracks else ''
-        inputs = inputs + '<p>Track '+ str(i) + ': <input type = "text" name = "track'+str(i)+'" size="66" value="' + t1 +'"/></p>'
-    inputs = inputs + '<p><input type = "submit" value = "submit" /></p></form>'
-    checkBlue = 'Activate ' if statusBluetooth == 'Off' else 'Deactivate'
-    inputs += '<br/><a href="bluetooth">'+ checkBlue + ' Bluetooth</a>'
-    return web+inputs
+        inputs = inputs + '<input type="text" class="pure-input-1" placeholder="Track" name="track'+str(i)+'" value="' + t1 +'"/>'
+    return render_template("index.html", tracksv=inputs)
+  
 
 @app.route('/bluetooth')
 def webBluetooth():
@@ -201,7 +199,6 @@ def webMakespoof():
 def webTracks():
     result = request.form if request.method == 'POST' else request.args
     checkRequest = jsonValues(result, 11, 0)
-    
     # Writing JSON data
     writeTrack(checkRequest)
     return 'Added tracks: ' + json.dumps(checkRequest) + linkHome()
@@ -224,6 +221,8 @@ def shutdown():
     shutdown_server()
     return 'Shutting down...'
 
+#-End WebServer
+        
 def selectMenu(wayGo): #Where to draw a selection
 	global whereI
 	if (wayGo >= 0):
@@ -240,10 +239,10 @@ def clearDisplay(): #Reset display
 
 clearDisplay()
 
-if (path.exists(getcwd() + '/samy.ppm')):
-	image2 = Image.open(getcwd() + '/samy.ppm').resize((width, height), Image.ANTIALIAS).convert('1')
+if (path.exists(getcwd() + '/static/samy.ppm')):
+	image2 = Image.open(getcwd() + '/static/samy.ppm').resize((width, height), Image.ANTIALIAS).convert('1')
 	draw2 = ImageDraw.Draw(image2)
-	font2 = ImageFont.truetype(getcwd() + '/3dventure.ttf', 20)
+	font2 = ImageFont.truetype(getcwd() + '/static/3dventure.ttf', 20)
 	draw2.text((x, height-12), "SamyKam",font=font2, fill=255)
 	disp.image(image2)
 	disp.display()
@@ -270,16 +269,10 @@ def genFunctions(d1): #Bluetooth commands handler
             return("Adding track: " + d1 + "\n")
         else:
             return("Error: add track data\n")
-    elif (splitData[0] == "wifi"):
-        if (len(splitData) == 2):
-            changeWifi(d1)
-            return("Changing WiFi configuration to : " + d1 + "\n")
-        else:
-            return("Error: parameters\n")
     elif (d1 == "quit"):
             return ""
     elif (splitData[0] == "help"):
-        return("Commands:\nRun - Run MagSpoof\Track[1-10] [track data] - Add MagSpoof track\nAny Command - Execute any command in the shell\nClear - Clear all the MagSpoof tracks in memory to add new ones\nWifi [SSID] [password] - Add wifi configuration\n")
+        return("Commands:\nRun - Run MagSpoof\Track[1-10] [track data] - Add MagSpoof track\nAny Command - Execute any command in the shell\nClear - Clear all the MagSpoof tracks in memory to add new ones\n")
     else:
 	cmd1 = runCommandlog(d1)
 	return cmd1 + "\n"
@@ -297,7 +290,7 @@ def runBluetooth(): #Bluetooth - make bluetooth discoverable
         drawText(0,9,"Running->Bluetooth...")
         makep = runCommand('sudo hciconfig hci0 piscan')
         sleep(2)
-        drawText(0,18,"Making it discoverable...")
+        drawText(0,18,"Creating thread...")
         sleep(3)
         blueT = Thread(target=runBluetooth2) # Create a thread
         blueT.start() # In background
@@ -323,51 +316,27 @@ def runBluetooth2(): #Bluetooth socket handler
         doThings = "Error"
         if data:    
             print "received [%s]" % data
-	try:
-  		doThings = genFunctions(data)
+        try:
+            doThings = genFunctions(data)
         except: 
-  		pass
+            pass
+        
         if (doThings == ""):
             break
         else:
             client_sock.send(str(doThings))
+        
     client_sock.close()
     server_sock.close()
 
 def runCommand(command): #Special commands 
     chdir(getcwd())
-    run = subprocess.call(command, shell=True, stdout=subprocess.PIPE)
+    run = call(command, shell=True, stdout=PIPE)
 
 def runCommandlog(command): #Mini-shell handler 
-    p = subprocess.Popen(shlex.split(command), stdout=subprocess.PIPE)
+    p = Popen(split1(command), stdout=PIPE)
     result = p.communicate()[0].strip()
     return result
-
-def changeWifi(id2): #Basic wifi configuration
-    splitWifi = id2.split()
-    id1 = splitWifi[0]
-    lenWifi = len(splitWifi)
-    pass1 = ""
-    if (lenWifi >= 2):
-        pass1 = splitWifi[len(splitWifi)-1]
-    lenPass = len(pass1)
-    if (lenPass > 0):
-        id1 = id2[:-(lenPass+1)]
-    id1 = '"' + id1 + '"'
-    pass1 = '"' + pass1 + '"'
-    tmpFile = """
-        auto lo
-
-        iface lo inet loopback
-        iface eth0 inet dhcp
-
-        allow-hotplug wlan0
-        auto wlan0
-
-        iface wlan0 inet dhcp
-                wpa-ssid """ + id1 + """
-                wpa-psk """ + pass1 + """
-        """
     
 def addNtracks(): #MagSpoof tracks #s
     n1 = countTracks
@@ -378,31 +347,42 @@ def addNtracks(): #MagSpoof tracks #s
 def runMagspoof(): #MagSpoof
     clearDisplay()
     drawText(0,18,"Running MagSpoof...")
-    makep = runCommand('sudo python ' + getcwd() + '/gpio.py')
+    makep = runCommand('sudo python ' + getcwd() + '/static/runMagSpoof.py')
     sleep(2)
-    #print makep
     menuInit(activeMenu, 0, 0)
-    
+
+cardOr = ''
 def makeMagspoof(): #MagSpoof compiler
-    if (path.exists(headMFile) and path.exists(tailMFile)):
+    headf = getcwd() + headMFile
+    tailf = getcwd() + tailMFile
+    if (path.exists(headf) and path.exists(tailf)):
         global headMGPI, tailMGPI
-        with open(headMFile,'r') as f:
+        with open(headf,'r') as f:
             headMGPI = f.read()
-        with open(tailMFile,'r') as f:
+        with open(tailf,'r') as f:
             tailMGPI = f.read()
         filem = open(getcwd() + '/MagSpoofPI.c', 'w')
-        filem.write(headMGPI + addNtracks() + formatTracks() + tailMGPI)
+        tTrack = ''
+
+        if cardOr == '':
+            tTrack = headMGPI + addNtracks() + formatTracks() + tailMGPI
+        else:
+            tTrack = headMGPI + addNtracks() + one + tailMGPI
+        #count = count == N ? 0 : count + 1;
+
+        filem.write(tTrack)
         filem.close()
         clearDisplay()
         drawText(0,18,"Compiling MagSpoof...")
         makep = runCommand('make install')
-
     else:
         return "No config files"
     menuInit(activeMenu, 0, 0)
     
 def genMakefile(): #MagSpoof generator
+    global cardOr
     print "------------\nGenerating MagSpoofPI.c:"
+    cardOr = ''
     makeIns = Thread(target=makeMagspoof) # Create a thread
     makeIns.start()
     makeIns.join() # Wait until finished
@@ -410,8 +390,8 @@ def genMakefile(): #MagSpoof generator
 #if __name__ == '__main__':
 # Bind to PORT if defined, otherwise default to 5000.
 def webDeamon():
-        port = int(environ.get('PORT', webPort))
-        app.run(host='0.0.0.0', port=port)
+    port = int(environ.get('PORT', webPort))
+    app.run(host='0.0.0.0', port=port)
 
 def runWebserver():
     global statusWebserver, tracks
@@ -424,25 +404,26 @@ def runWebserver():
     else:
         statusWebserver = "On"
         drawText(0,9,"Running->Webserver...")
-	webThread = Thread(target=webDeamon) # Create main thread
-	t = webThread.start() # In background
-        sleep(3)
+        webThread = Thread(target=webDeamon) # Create main thread
+        t = webThread.start() # In background
+        sleep(2)
         
     tracks['webserver'] = statusWebserver
     writeTrack(tracks)
     menuInit(activeMenu, 0, 0)
     #print "Salio"
-def checkUpdates():
-    clearDisplay()
-    drawText(0,18,"Working on it!")
-    sleep(2)
+
+def cardsMemory():
+    global activeMenu
+    formatTracks()    
+    activeMenu = cardsMenu
     
 listTodo = {
     0 : runMagspoof,
-    1 : makeMagspoof,
+    1 : genMakefile,
     2 : runBluetooth,
     3 : runWebserver,
-    4 : checkUpdates,
+    4 : cardsMemory,
 }
 
 def drawText(x2,y2,text): #Helps to draw a text in a specific position
@@ -478,9 +459,19 @@ def menuInit(menuName, wayGo, menuMain):
         disp.image(image)
         disp.display()
 
+def compileCard(num):
+    global countTracks, cardOr
+    cardOr = '10'
+    countTracks = 1
+    print cardsMenu[num]
+    #makeMagspoof(cardsMenu[num])
+    cardOr = ''
+
 # Menu control
-menuTop = ["SamyKam", " ", " ","Update"]
-menuList1 = ["Run","Make MagSpoof","Bluetooth","WebServer"]
+menuTop = ["SamyKam", " ", " "," ","Update"]
+menuList1 = ["Run","Make MagSpoof","Bluetooth","WebServer","Cards"]
+#cardsMenu = ["Back?"]
+
 
 activeMenu = menuList1
 activeTitle = 0
@@ -504,7 +495,7 @@ def menuFlow(delta1): #where to go!
                 menuInit(activeMenu, 0, activeTitle)
 
 def mainWhile():
-    global sw_state, last_state, counter, fromw
+    global sw_state, last_state, counter, fromw, activeMenu
     while 1:
         #Negative value in the encoder means foward in the menu!
         delta = encoder.get_steps()
@@ -512,19 +503,30 @@ def mainWhile():
             sleep(0.2)
         delta = encoder.get_steps()
         if (delta != 0):
-        	menuFlow(delta)
-        	print "rotate %d" % delta
-        	sleep(0.2)
+            menuFlow(delta)
+            print "rotate %d" % delta
+            #sleep(0.1)
+        
         sw_state = switch1.get_state()
         if sw_state != last_state: 
             print "estate %d" % sw_state
-        if (last_state == 1): #Pressed the encoder?
+        if (sw_state == 1) and (activeMenu == menuList1): #Pressed the encoder?
             listTodo[counter]() #Depending where is the position in the menu is the action in the listTodo function
             counter = 0
             fromw = 0
             menuInit(activeMenu, 0, activeTitle)
-	    loadTracks()
-	    sleep(2)
+            loadTracks()
+            sleep(2)
+        elif (sw_state == 1) and (activeMenu == cardsMenu):
+            if (counter == 0):
+                fromw = 0
+                activeMenu = menuList1
+                menuInit(activeMenu, 0, activeTitle)
+                loadTracks()
+                #sleep(1)
+            else:
+                compileCard(counter)
+                sleep(1)
         last_state = sw_state
 
 mainThread = Thread(target=mainWhile) # Create main thread
