@@ -8,17 +8,16 @@ Team work with @electronicats (https://twitter.com/electronicats)
 Named the tool in honor of Samy Kamkar(http://samy.pl)
 For his hard work and community support
  
-It is a MagSpoof but specfically designed for Raspberry Pi:
+This MagSpoof version is specfically designed for Raspberry Pi:
 - OLED for prepared attacks
 - Rotary endoder for navigation menu
 
 Support:
 Mini-shell for basic commands implementing Bluetooth and Webserver independently
 - change parameters without ssh
-- change wifi configuration [ssid/pass] *
 - send any shell command using Bluetooth
-
 """
+
 from flask import Flask, request, json, redirect, render_template, escape
 from gaugette import rotary_encoder, switch, gpio
 from threading import Thread
@@ -174,20 +173,10 @@ def formatTracks(): #Generate tracks to compile
 @app.route('/')
 def api_root():
     loadTracks()
-    #print tracks
-    web = """SamyKam Web Commands:<br/><br/><a href="/magspoof">Run MagSpoof</a>
-    <br/><a href="compile">Compile MagSpoof</a>
-    <br/><a href="cleartracks">Clear tracks</a></br>
-    </br><form action = "/addtracks" method = "POST">Change Tracks:"""
     inputs = ''
     for i in range(1,11):
         t1 = tracks['track'+str(i)] if ('track' + str(i)) in tracks else ''
         inputs = inputs + '<input type="text" class="pure-input-1" placeholder="Track" name="track'+str(i)+'" value="' + t1 +'"/>'
-    
-    #inputs = inputs + '<p>Track '+ str(i) + ': <input type = "text" name = "track'+str(i)+'" size="66" value="' + t1 +'"/></p>'
-    #inputs = inputs + '<p><input type = "submit" value = "submit" /></p></form>'    
-    checkBlue = 'Activate ' if statusBluetooth == 'Off' else 'Deactivate'
-    #inputs += '<br/><a href="bluetooth">'+ checkBlue + ' Bluetooth</a>'
     return render_template("index.html", tracksv=inputs)
     
 #Adding BlueSpoof Support - Beta version
@@ -206,10 +195,7 @@ def webBluespoof():
     inputs = ''
     for i in range(1,11):
         t1 = tracks['track'+str(i)] if ('track' + str(i)) in tracks else ''
-        inputs = inputs + '<textarea class="pure-input-1" placeholder="%4929555123456789^MALFUNCTION/MAJOR ^0902201010000000000000970000000?" name="track'+str(i)+'"/>'+t1+'</textarea>'
-        #inputs = inputs + '<input type="text" class="pure-input-1" placeholder="Track" name="track'+str(i)+'" value="' + t1 +'"/>' 
-        
-    #runBluespoof()
+        inputs = inputs + '<textarea class="pure-input-1" placeholder="%4929555123456789^MALFUNCTION/MAJOR ^0902201010000000000000970000000?" name="track'+str(i)+'"/>'+t1+'</textarea>'        
     return render_template("bluespoof.html", tracksv=Markup(inputs))
 #--BlueSpoof beta code
 
@@ -232,7 +218,6 @@ def webMakespoof():
 def webTracks():
     result = request.form if request.method == 'POST' else request.args
     checkRequest = jsonValues(result, 11, 0)
-    
     # Writing JSON data
     writeTrack(checkRequest)
     return 'Added tracks: ' + json.dumps(checkRequest) + linkHome()
@@ -303,16 +288,10 @@ def genFunctions(d1): #Bluetooth commands handler
             return("Adding track: " + d1 + "\n")
         else:
             return("Error: add track data\n")
-    elif (splitData[0] == "wifi"):
-        if (len(splitData) == 2):
-            changeWifi(d1)
-            return("Changing WiFi configuration to : " + d1 + "\n")
-        else:
-            return("Error: parameters\n")
     elif (d1 == "quit"):
             return ""
     elif (splitData[0] == "help"):
-        return("Commands:\nRun - Run MagSpoof\Track[1-10] [track data] - Add MagSpoof track\nAny Command - Execute any command in the shell\nClear - Clear all the MagSpoof tracks in memory to add new ones\nWifi [SSID] [password] - Add wifi configuration\n")
+        return("Commands:\nRun - Run MagSpoof\Track[1-10] [track data] - Add MagSpoof track\nAny Command - Execute any command in the shell\nClear - Clear all the MagSpoof tracks in memory to add new ones\n")
     else:
 	cmd1 = runCommandlog(d1)
 	return cmd1 + "\n"
@@ -377,32 +356,6 @@ def runCommandlog(command): #Mini-shell handler
     p = Popen(split1(command), stdout=PIPE)
     result = p.communicate()[0].strip()
     return result
-
-def changeWifi(id2): #Basic wifi configuration
-    splitWifi = id2.split()
-    id1 = splitWifi[0]
-    lenWifi = len(splitWifi)
-    pass1 = ""
-    if (lenWifi >= 2):
-        pass1 = splitWifi[len(splitWifi)-1]
-    lenPass = len(pass1)
-    if (lenPass > 0):
-        id1 = id2[:-(lenPass+1)]
-    id1 = '"' + id1 + '"'
-    pass1 = '"' + pass1 + '"'
-    tmpFile = """
-        auto lo
-
-        iface lo inet loopback
-        iface eth0 inet dhcp
-
-        allow-hotplug wlan0
-        auto wlan0
-
-        iface wlan0 inet dhcp
-                wpa-ssid """ + id1 + """
-                wpa-psk """ + pass1 + """
-        """
     
 def addNtracks(): #MagSpoof tracks #s
     n1 = countTracks
