@@ -17,7 +17,6 @@ It is a MagSpoof but specfically designed for Raspberry Pi:
 Support:
 Mini-shell for basic commands implementing Bluetooth and Webserver independently
 - change parameters without ssh
-- change wifi configuration [ssid/pass] *
 - send any shell command using Bluetooth
 
 ##Installation 
