@@ -62,6 +62,9 @@ git clone https://github.com/guyc/py-gaugette
 cd py-gaugette
 sudo python setup.py install
 
+#Flask
+pip install flask
+
 #SamyKamTools
 git clone https://github.com/ElectronicsCats/SamyKamTools
 cd SamyKamTools
