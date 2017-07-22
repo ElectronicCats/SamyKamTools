@@ -18,7 +18,7 @@ Mini-shell for basic commands implementing Bluetooth and Webserver independently
 - send any shell command using Bluetooth
 """
 
-from flask import Flask, request, json, redirect, render_template, escape
+from flask import Flask, request, json, redirect, render_template, escape, Markup
 from gaugette import rotary_encoder, switch, gpio
 from threading import Thread
 from subprocess import PIPE, call, Popen
@@ -29,8 +29,9 @@ from Adafruit_SSD1306 import SSD1306_128_32
 from time import sleep
 from PIL import Image, ImageDraw, ImageFont
 from bluetooth import *
+from bluespoof import *
 
-webPort = 5002 #WebServer port
+webPort = 5000 #WebServer port
 
 MAGPIN = 7
 WAITINTRO = 2
@@ -178,7 +179,35 @@ def api_root():
         t1 = tracks['track'+str(i)] if ('track' + str(i)) in tracks else ''
         inputs = inputs + '<input type="text" class="pure-input-1" placeholder="Track" name="track'+str(i)+'" value="' + t1 +'"/>'
     return render_template("index.html", tracksv=inputs)
-  
+
+
+#Adding BlueSpoof Support - Beta version
+@app.route('/makewav', methods = ['POST']) #Adding BlueSpoof Support
+def playBluespoof():
+    result = request.form if request.method == 'POST' else request.args
+    checkRequest = jsonValues(result, 11, 0)
+    formatPlay = formatTracks()
+    audioHtml = ''
+    for i in range(0,len(cardsPlay)):
+        d = result.get('data')
+    	t = result.get('track')
+    	p = result.get('padding')
+    	f = result.get('freq')
+    	showr = splitData(cardsPlay[i],t,p,f)
+        #prepareWav(cardsPlay[i], '1')
+        audioHtml = audioHtml + '<audio src="'+ showr +'" controls loop></audio><a href="'+ showr + '"> -> Download WAV file</a><hr>'
+    return render_template("audio.html", tracksv=Markup(audioHtml))
+
+@app.route('/bluespoof')
+def webBluespoof():
+    loadTracks()
+    inputs = ''
+    for i in range(1,11):
+        t1 = tracks['track'+str(i)] if ('track' + str(i)) in tracks else ''
+        inputs = inputs + '<textarea class="pure-input-1" placeholder="%4929555123456789^MALFUNCTION/MAJOR ^0902201010000000000000970000000?" name="track'+str(i)+'"/>'+t1+'</textarea>'
+        
+    return render_template("bluespoof.html", tracksv=Markup(inputs))
+#--BlueSpoof beta code
 
 @app.route('/bluetooth')
 def webBluetooth():
@@ -264,7 +293,6 @@ def genFunctions(d1): #Bluetooth commands handler
         if (len(splitData) == 2):
             #addTrack(splitData[1])
     	    checkRequest = jsonValues({splitData[0] : splitData[1]}, 11, 0)
- 	    #print checkRequest
             writeTrack(checkRequest)
             return("Adding track: " + d1 + "\n")
         else:
@@ -272,7 +300,9 @@ def genFunctions(d1): #Bluetooth commands handler
     elif (d1 == "quit"):
             return ""
     elif (splitData[0] == "help"):
-        return("Commands:\nRun - Run MagSpoof\Track[1-10] [track data] - Add MagSpoof track\nAny Command - Execute any command in the shell\nClear - Clear all the MagSpoof tracks in memory to add new ones\n")
+        return("Commands:\nRun - Run MagSpoof\nCompile - Compiles MagSpoofPI code\nTrack[1-10] [track data] - " + \
+               "Add MagSpoof track\nAny Command - Execute any command in the shell\n" + \
+               "Clear - Clear all the MagSpoof tracks in memory to add new ones\n")
     else:
 	cmd1 = runCommandlog(d1)
 	return cmd1 + "\n"
@@ -368,8 +398,7 @@ def makeMagspoof(): #MagSpoof compiler
             tTrack = headMGPI + addNtracks() + formatTracks() + tailMGPI
         else:
             tTrack = headMGPI + addNtracks() + one + tailMGPI
-        #count = count == N ? 0 : count + 1;
-
+            
         filem.write(tTrack)
         filem.close()
         clearDisplay()
@@ -464,7 +493,7 @@ def compileCard(num):
     cardOr = '10'
     countTracks = 1
     print cardsMenu[num]
-    #makeMagspoof(cardsMenu[num])
+    makeMagspoof(cardsMenu[num])
     cardOr = ''
 
 # Menu control
@@ -500,7 +529,7 @@ def mainWhile():
         #Negative value in the encoder means foward in the menu!
         delta = encoder.get_steps()
         if (delta != 0): #Slowing down the encoder data, necessary to have a good scrolling
-            sleep(0.2)
+            sleep(0.1)
         delta = encoder.get_steps()
         if (delta != 0):
             menuFlow(delta)
