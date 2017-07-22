@@ -189,13 +189,13 @@ def playBluespoof():
     formatPlay = formatTracks()
     audioHtml = ''
     for i in range(0,len(cardsPlay)):
-        d = result.get('data')
+    	d = result.get('data')
     	t = result.get('track')
     	p = result.get('padding')
     	f = result.get('freq')
     	showr = splitData(cardsPlay[i],t,p,f)
-        #prepareWav(cardsPlay[i], '1')
-        audioHtml = audioHtml + '<audio src="'+ showr +'" controls loop></audio><a href="'+ showr + '"> -> Download WAV file</a><hr>'
+    	#prepareWav(cardsPlay[i], '1')
+    	audioHtml = audioHtml + '<audio src="'+ showr +'" controls loop></audio><a href="'+ showr + '"> -> Download WAV file</a><hr>'
     return render_template("audio.html", tracksv=Markup(audioHtml))
 
 @app.route('/bluespoof')
