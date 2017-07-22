@@ -1,3 +1,7 @@
+#
+# This ViolentMag code is part of https://github.com/salmg/ViolentMag repository!
+#
+
 from wave import open as openw
 from struct import pack
 from operator import xor
