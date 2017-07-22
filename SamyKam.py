@@ -29,7 +29,7 @@ from Adafruit_SSD1306 import SSD1306_128_32
 from time import sleep
 from PIL import Image, ImageDraw, ImageFont
 from bluetooth import *
-from bluespoof import *
+from violentmag import *
 
 webPort = 5000 #WebServer port
 
