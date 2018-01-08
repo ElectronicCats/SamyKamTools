@@ -9,7 +9,7 @@ PCB design and advisory by Team work with [electronicats] (https://twitter.com/e
 Named the tool in honor of Samy Kamkar (http://samy.pl)
 For his hard work and community support
 
-##Features
+## Features
 It is a MagSpoof but specfically designed for Raspberry Pi:
 - OLED for prepared attacks
 - Rotary endoder for navigation menu
@@ -19,9 +19,9 @@ Mini-shell for basic commands implementing Bluetooth and Webserver independently
 - change parameters without ssh
 - send any shell command using Bluetooth
 
-##Installation 
+## Installation 
 
-###Manual
+### Manual
 
 ```
 apt-get update 
@@ -70,12 +70,12 @@ cd SamyKamTools
 sudo python SamyKam.py
 ```
 
-###Automatic Experimental
+### Automatic Experimental
 
 ```
 curl https://raw.githubusercontent.com/ElectronicsCats/SamyKamTools/master/install.sh | sudo sh
 ```
 
-##License
+## License
 
 The MagSpoofPi code is under Samy Kamkar license terms, for more information visit https://github.com/samyk/magspoof
